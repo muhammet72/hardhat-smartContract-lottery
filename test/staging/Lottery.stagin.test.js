@@ -19,12 +19,10 @@ developmentChains.includes(network.name)
           const startingTimeStamp = await lottery.getLatestTimeStamp()
           const accounts = await ethers.getSigners()
 
+          console.log("Setting up the listener")
           await new Promise(async (resolve, reject) => {
             lottery.once("Winnerpicked", async () => {
               console.log("Pinner picked event fired!")
-              assert(endingTimeStamp > startingTimeStamp)
-
-              resolve()
 
               try {
                 // assert here
@@ -41,13 +39,17 @@ developmentChains.includes(network.name)
                   winnerStartingBalance.add(lotteryEntranceFee).toString()
                 )
                 assert(endingTimeStamp > startingTimeStamp)
+                resolve()
               } catch (error) {
                 console.log(error)
                 reject(e)
               }
             })
             // then entering lottery
-            await lottery.enterLottery({ value: lotteryEntranceFee })
+            console.log("Entering Raffle...")
+            const tx = await lottery.enterLottery({ value: lotteryEntranceFee })
+            await tx.wait(1)
+            console.log("Ok, time to wait...")
             const winnerStartingBalance = await accounts[0].getBalance()
 
             // and this code WON'T comilete until our listener has finished listening !!
